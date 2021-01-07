@@ -6,5 +6,5 @@ project("acm-examples")
 # Set the C++ standard to use to build this target.
 set(CMAKE_CXX_STANDARD 11)
 
-add_executable(ipc main.cpp master.cpp slave.cpp worker.cpp msg.cpp)
+add_executable(ipc main.cpp master.cpp slave.cpp worker.cpp msg.cpp clang_runner.cpp)
 target_link_libraries(ipc rt)

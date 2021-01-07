@@ -31,6 +31,8 @@ using namespace std;
 // the master and slave communicates through network, and the slave
 // and workers communicates through local message queues
 
+void clang();
+
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     cout << "error!" << std::endl;
@@ -44,6 +46,8 @@ int main(int argc, char* argv[]) {
     slave();
   } else if (role == "worker") {
     worker();
+  } else if (role == "clang") {
+    clang();
   }
 
   return 0;

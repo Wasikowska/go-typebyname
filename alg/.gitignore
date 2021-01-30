@@ -1,4 +1,6 @@
 *~
 .clangd
-build
+output
 compile_commands.json
+alg
+*.png

@@ -111,6 +111,8 @@ void tree::add(int v) {
     }
   }
 
+  // TODO: when we add an element, we only need to fix the first
+  // unbalanced node, searching from bottom to up
   fix_path(path);
 }
 
@@ -151,9 +153,9 @@ void tree::remove(int v) {
       if (alternative) {
         // delete alternative
         if (path.back()->value > alternative->value) {
-          path.back()->left = nullptr;
+          path.back()->left = alternative->left;
         } else {
-          path.back()->right = nullptr;
+          path.back()->right = alternative->left;
         }
         hit->value = alternative->value;
         break;
@@ -175,9 +177,9 @@ void tree::remove(int v) {
 
       if (alternative) {
         if (path.back()->value > alternative->value) {
-          path.back()->left = nullptr;
+          path.back()->left = alternative->right;
         } else {
-          path.back()->right = nullptr;
+          path.back()->right = alternative->right;
         }
         hit->value = alternative->value;
         break;
@@ -212,7 +214,8 @@ void tree::fix_path(std::deque<node *> &path) {
 
     node *new_n{nullptr};
     if (get_height(n->left) - get_height(n->right) > 1) {
-      if (get_height(n->left->left) > get_height(n->left->right)) {
+      // it is VERY IMPORTANT that we use '>=' instead of '>' here
+      if (get_height(n->left->left) >= get_height(n->left->right)) {
         // left-left rotation
         auto a = n;
         auto b = n->left;
@@ -244,7 +247,7 @@ void tree::fix_path(std::deque<node *> &path) {
         new_n = c;
       }
     } else if (get_height(n->right) - get_height(n->left) > 1) {
-      if (get_height(n->right->right) > get_height(n->right->left)) {
+      if (get_height(n->right->right) >= get_height(n->right->left)) {
         // right-right rotation
         auto a = n;
         auto b = n->right;
@@ -296,8 +299,8 @@ void tree::fix_path(std::deque<node *> &path) {
 TEST(avl, add) {
   tree t;
   srand(getpid());
-  for (int i = 0; i < 3000; i++) {
-    t.add(rand() % 3000);
+  for (int i = 0; i < 500; i++) {
+    t.add(rand() % 500);
     ASSERT_TRUE(t.validate());
   }
 }
@@ -305,12 +308,31 @@ TEST(avl, add) {
 TEST(avl, remove) {
   tree t;
   srand(getpid());
-  for (int i = 0; i < 3000; i++) {
-    t.add(rand() % 3000);
+  std::vector<int> addvec, remvec;
+  for (int i = 0; i < 500; i++) {
+    int v = rand() % 500;
+    addvec.push_back(v);
+    t.add(v);
   }
-  for (int i = 0; i < 2500; i++) {
-    t.remove(rand() % 3000);
-    ASSERT_TRUE(t.validate());
+  for (int i = 0; i < 400; i++) {
+    int v = rand() % 500;
+    remvec.push_back(v);
+    t.remove(v);
+    bool valid = t.validate();
+    if (!valid) {
+      std::ofstream fs("avl_remove_fail.inc");
+      fs << "TEST(avl, fail_remove) {" << std::endl;
+      fs << "  tree t;" << std::endl;
+      for (auto a : addvec) {
+	fs << "  t.add(" << a << ");" << std::endl;
+      }
+      for (auto r : remvec) {
+	fs << "  t.remove(" << r << ");" << std::endl;
+      }
+      fs << "}" << std::endl;
+      fs.close();
+    }
+    ASSERT_TRUE(valid);
   }
 }
 

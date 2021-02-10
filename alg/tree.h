@@ -5,11 +5,58 @@
 #include <sstream>
 #include <string>
 
-#include <gtest/gtest.h>
 #include <benchmark/benchmark.h>
+#include <gtest/gtest.h>
 
 namespace binary_tree {
-template <typename Derived> struct node_base {
+
+  // mainly used in other mixins, to get the derived class pointer
+template <typename Derived> struct AsDerivedMixin {
+  Derived *as_derived() { return static_cast<Derived *>(this); }
+};
+
+  // add a height member, plus height checker
+template <typename Derived>
+struct HeightMixin : public AsDerivedMixin<Derived> {
+  int height{0};
+
+  // validate if the height is correctly calculated
+  bool validate_height() {
+    bool _height_fail{false};
+    std::function<int(Derived *)> _height;
+    _height = [&](Derived *n) -> int {
+      if (!n) {
+        return -1;
+      }
+
+      int h{-1};
+      if (!n->left && !n->right) {
+        h = 0;
+      } else if (!n->left) {
+        h = _height(n->right) + 1;
+      } else if (!n->right) {
+        h = _height(n->left) + 1;
+      } else {
+        h = std::max(_height(n->left), _height(n->right)) + 1;
+      }
+      if (h != n->height) {
+        _height_fail = true;
+      }
+      return h;
+    };
+
+    _height(this->as_derived());
+    return !_height_fail;
+  }
+
+  static int get_height(Derived *n) { return n ? n->height : -1; }
+  static void update_height(Derived *n) {
+    n->height = std::max(get_height(n->left), get_height(n->right)) + 1;
+  }
+};
+
+template <typename Derived, template <typename> class... Mixin>
+struct node_base : public Mixin<Derived>... {
   Derived *left{nullptr};
   Derived *right{nullptr};
 
@@ -23,7 +70,7 @@ template <typename Derived> struct node_base {
     return ss.str();
   }
 
-  std::string dot_rep() {
+  virtual std::string dot_rep() {
     std::stringstream ss;
     ss << dot_id() << " [label=\"" << dot_id()
        << "\", style=filled, font=monospace, fontsize=15]";
@@ -46,7 +93,7 @@ public:
       remove(i);
   }
 
-  void print(testing::TestInfo *test, const std::string& extra) {
+  void print(testing::TestInfo *test, const std::string &extra = "") {
     std::stringstream tag;
     tag << test->test_case_name() << "_" << test->name();
 
@@ -97,7 +144,8 @@ public:
     write(fd, str.c_str(), str.size());
 
     std::stringstream cmd;
-    cmd << "dot -Tpng:cairo " << tmpfile << " > " << tag.str() << extra << ".png";
+    cmd << "dot -Tpng:cairo " << tmpfile << " > " << tag.str() << extra
+        << ".png";
     system(cmd.str().c_str());
 
     close(fd);
@@ -109,21 +157,5 @@ public:
 protected:
   NodeType *root{nullptr};
 };
+
 } // namespace binary_tree
-
-namespace binary_search_tree {
-struct node : public binary_tree::node_base<node> {
-  int height{0};
-  node(int v) : binary_tree::node_base<node>(v) {}
-};
-
-inline int get_height(node *n) { return n ? n->height : -1; }
-static void update_height(node *n) {
-  n->height = std::max(get_height(n->left), get_height(n->right)) + 1;
-}
-
-class tree : public binary_tree::tree<node> {
-public:
-  bool validate_height();
-};
-} // namespace binary_search_tree

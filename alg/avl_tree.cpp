@@ -26,12 +26,12 @@
 // - 右子节点的左子节点有最大的height：用right left rotation
 // - 右子节点的右子节点有最大的height：用right right rotation
 namespace avl_tree {
+class node : public binary_tree::node_base<node, binary_tree::HeightMixin> {
+public:
+  node(int v) : binary_tree::node_base<node, binary_tree::HeightMixin>(v) {}
+};
 
-using binary_search_tree::get_height;
-using binary_search_tree::node;
-using binary_search_tree::update_height;
-
-class tree : public binary_search_tree::tree {
+class tree : public binary_tree::tree<node> {
 public:
   bool validate();
 
@@ -42,6 +42,7 @@ private:
   void fix_path(std::deque<node *> &path);
 };
 
+// check balance factor for each node
 static bool _balance_fail{false};
 static int _balance(node *n) { // return height
   int h{-1};
@@ -70,7 +71,7 @@ static int _balance(node *n) { // return height
 
 bool tree::validate() {
   // check height
-  if (!validate_height())
+  if (!root->validate_height())
     return false;
 
   _balance_fail = false;
@@ -213,9 +214,9 @@ void tree::fix_path(std::deque<node *> &path) {
     path.pop_back();
 
     node *new_n{nullptr};
-    if (get_height(n->left) - get_height(n->right) > 1) {
+    if (node::get_height(n->left) - node::get_height(n->right) > 1) {
       // it is VERY IMPORTANT that we use '>=' instead of '>' here
-      if (get_height(n->left->left) >= get_height(n->left->right)) {
+      if (node::get_height(n->left->left) >= node::get_height(n->left->right)) {
         // left-left rotation
         auto a = n;
         auto b = n->left;
@@ -225,8 +226,8 @@ void tree::fix_path(std::deque<node *> &path) {
         b->right = a;
 
         // the update order is important!
-        update_height(a);
-        update_height(b);
+        node::update_height(a);
+        node::update_height(b);
 
         new_n = b;
       } else {
@@ -240,14 +241,15 @@ void tree::fix_path(std::deque<node *> &path) {
         c->left = b;
         c->right = a;
 
-        update_height(a);
-        update_height(b);
-        update_height(c);
+        node::update_height(a);
+        node::update_height(b);
+        node::update_height(c);
 
         new_n = c;
       }
-    } else if (get_height(n->right) - get_height(n->left) > 1) {
-      if (get_height(n->right->right) >= get_height(n->right->left)) {
+    } else if (node::get_height(n->right) - node::get_height(n->left) > 1) {
+      if (node::get_height(n->right->right) >=
+          node::get_height(n->right->left)) {
         // right-right rotation
         auto a = n;
         auto b = n->right;
@@ -256,8 +258,8 @@ void tree::fix_path(std::deque<node *> &path) {
         a->right = b->left;
         b->left = a;
 
-        update_height(a);
-        update_height(b);
+        node::update_height(a);
+        node::update_height(b);
 
         new_n = b;
       } else {
@@ -271,14 +273,14 @@ void tree::fix_path(std::deque<node *> &path) {
         c->right = b;
         c->left = a;
 
-        update_height(a);
-        update_height(b);
-        update_height(c);
+        node::update_height(a);
+        node::update_height(b);
+        node::update_height(c);
 
         new_n = c;
       }
     } else {
-      update_height(n);
+      node::update_height(n);
       continue;
     }
 
@@ -324,10 +326,10 @@ TEST(avl, remove) {
       fs << "TEST(avl, fail_remove) {" << std::endl;
       fs << "  tree t;" << std::endl;
       for (auto a : addvec) {
-	fs << "  t.add(" << a << ");" << std::endl;
+        fs << "  t.add(" << a << ");" << std::endl;
       }
       for (auto r : remvec) {
-	fs << "  t.remove(" << r << ");" << std::endl;
+        fs << "  t.remove(" << r << ");" << std::endl;
       }
       fs << "}" << std::endl;
       fs.close();

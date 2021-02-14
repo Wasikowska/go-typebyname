@@ -6,7 +6,7 @@ struct node : public binary_tree::node_base<node> {
   node(int v) : binary_tree::node_base<node>(v) {}
 };
 
-class tree : public binary_tree::tree<node> {
+class tree : public binary_tree::tree_base<tree, node, binary_tree::BSTMixin> {
 public:
   void add(int v);
   void remove(int v);
@@ -16,105 +16,21 @@ private:
 };
 
 void tree::add(int v) {
-  node *n = root;
   std::deque<node *> path;
-  while (true) {
-    if (!n) {
-      // insert v;
-      auto nn = new node(v);
-      if (path.empty()) {
-        root = nn;
-      } else if (path.back()->value > v) {
-        path.back()->left = nn;
-      } else {
-        path.back()->right = nn;
-      }
-      path.push_back(nn);
-      splay(path);
-      break;
-    } else if (n->value == v) {
-      break;
-    } else if (n->value > v) {
-      path.push_back(n);
-      n = n->left;
-    } else {
-      path.push_back(n);
-      n = n->right;
-    }
+  bool added = bst_add(root, v, path);
+
+  if (added) {
+    splay(path);
   }
 }
 
 // this is top-down splay tree; there's also bottom up splay tree
 void tree::remove(int v) {
-  node *n = root;
   std::deque<node *> path;
-  for (;;) {
-    if (!n) {
-      // can not find the node to delete
-      return;
-    }
+  bool removed = bst_remove(root, v, path);
 
-    path.push_back(n);
-    if (n->value == v) {
-      // go on to find the alternative
-      node *remainder{nullptr};
-      if (n->left) {
-        node *m = n->left;
-        while (m) {
-          path.push_back(m);
-          m = m->right;
-        }
-        remainder = path.back()->left;
-      } else if (n->right) {
-        node *m = n->right;
-        while (m) {
-          path.push_back(m);
-          m = m->left;
-        }
-        remainder = path.back()->right;
-      }
-
-      if (n->left || n->right) {
-        // the end of the path is the alternative, we should delete
-        // alternative and put its value into node n
-        auto alternative = path.back();
-        path.pop_back();
-
-        // delete alternate node
-        if (remainder) {
-          if (remainder->value < path.back()->value) {
-            path.back()->left = remainder;
-          } else {
-            path.back()->right = remainder;
-          }
-        } else if (alternative->value < path.back()->value) {
-          path.back()->left = nullptr;
-        } else {
-          path.back()->right = nullptr;
-        }
-
-        n->value = alternative->value;
-      } else {
-        // really need to delete n
-        assert(n == path.back());
-        path.pop_back();
-
-        if (path.empty()) {
-          root = nullptr;
-        } else if (path.back()->value > n->value) {
-          path.back()->left = nullptr;
-        } else {
-          path.back()->right = nullptr;
-        }
-      }
-
-      splay(path);
-      break;
-    } else if (n->value > v) {
-      n = n->left;
-    } else {
-      n = n->right;
-    }
+  if (removed) {
+    splay(path);
   }
 }
 

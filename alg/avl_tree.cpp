@@ -31,7 +31,7 @@ public:
   node(int v) : binary_tree::node_base<node, binary_tree::HeightMixin>(v) {}
 };
 
-class tree : public binary_tree::tree<node> {
+class tree : public binary_tree::tree_base<tree, node, binary_tree::BSTMixin> {
 public:
   bool validate();
 
@@ -80,128 +80,21 @@ bool tree::validate() {
 }
 
 void tree::add(int v) {
-  if (!root) {
-    root = new node(v);
-    return;
-  }
-
   std::deque<node *> path;
+  bool added = bst_add(root, v, path);
 
-  node *n = root;
-  for (;;) {
-    if (n->value == v) {
-      return;
-    }
-
-    path.push_back(n);
-
-    if (n->value > v) {
-      if (n->left) {
-        n = n->left;
-      } else {
-        n->left = new node(v);
-        break;
-      }
-    } else {
-      if (n->right) {
-        n = n->right;
-      } else {
-        n->right = new node(v);
-        break;
-      }
-    }
+  if (added) {
+    // TODO: when we add an element, we only need to fix the first
+    // unbalanced node, searching from bottom to up
+    fix_path(path);
   }
-
-  // TODO: when we add an element, we only need to fix the first
-  // unbalanced node, searching from bottom to up
-  fix_path(path);
 }
 
 void tree::remove(int v) {
   std::deque<node *> path;
+  bool removed = bst_remove(root, v, path);
 
-  node *n = root;
-  node *hit{nullptr};
-  while (n) {
-    if (v < n->value) {
-      path.push_back(n);
-      n = n->left;
-    } else if (v > n->value) {
-      path.push_back(n);
-      n = n->right;
-    } else {
-      // we find v
-      hit = n;
-
-      // altetnative is the node whose value will be put into the hit
-      // node. if we can find alternative, we will delete alternative
-      // instead of hit
-      node *alternative{nullptr};
-      if (n->left) {
-        path.push_back(n);
-        node *m = n->left;
-        while (m) {
-          if (!m->right) {
-            alternative = m;
-            break;
-          } else {
-            path.push_back(m);
-            m = m->right;
-          }
-        }
-      }
-
-      if (alternative) {
-        // delete alternative
-        if (path.back()->value > alternative->value) {
-          path.back()->left = alternative->left;
-        } else {
-          path.back()->right = alternative->left;
-        }
-        hit->value = alternative->value;
-        break;
-      }
-
-      if (n->right) {
-        path.push_back(n);
-        node *m = n->right;
-        while (m) {
-          if (!m->left) {
-            alternative = m;
-            break;
-          } else {
-            path.push_back(m);
-            m = m->left;
-          }
-        }
-      }
-
-      if (alternative) {
-        if (path.back()->value > alternative->value) {
-          path.back()->left = alternative->right;
-        } else {
-          path.back()->right = alternative->right;
-        }
-        hit->value = alternative->value;
-        break;
-      }
-
-      // can not find a alternative, so we must actually delete hit
-      if (path.empty()) {
-        root = nullptr;
-      } else {
-        if (path.back()->value > hit->value) {
-          path.back()->right = nullptr;
-        } else {
-          path.back()->left = nullptr;
-        }
-      }
-
-      break;
-    }
-  }
-
-  if (hit) {
+  if (removed) {
     fix_path(path);
   }
 }

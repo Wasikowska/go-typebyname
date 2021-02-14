@@ -10,12 +10,12 @@
 
 namespace binary_tree {
 
-  // mainly used in other mixins, to get the derived class pointer
+// mainly used in other mixins, to get the derived class pointer
 template <typename Derived> struct AsDerivedMixin {
   Derived *as_derived() { return static_cast<Derived *>(this); }
 };
 
-  // add a height member, plus height checker
+// add a height member, plus height checker
 template <typename Derived>
 struct HeightMixin : public AsDerivedMixin<Derived> {
   int height{0};
@@ -78,10 +78,123 @@ struct node_base : public Mixin<Derived>... {
   }
 };
 
-template <typename NodeType> class tree {
+template <typename Derived, typename NodeT>
+struct BSTMixin : public AsDerivedMixin<Derived> {
 public:
-  virtual void add(int i) = 0;
-  virtual void remove(int i) = 0;
+  bool bst_add(NodeT *&root, int v, std::deque<NodeT *> &path) {
+    assert(path.empty());
+    NodeT *n = root; // assign root to n
+    for (;;) {
+      if (!n) {
+        // insert v;
+        auto nn = new NodeT(v);
+        if (!path.empty()) {
+          if (path.back()->value > v) {
+            path.back()->left = nn;
+          } else {
+            path.back()->right = nn;
+          }
+        } else {
+          root = nn;
+        }
+        path.push_back(nn);
+        return true;
+      } else if (n->value == v) {
+        return false;
+      } else if (n->value > v) {
+        path.push_back(n);
+        n = n->left;
+      } else {
+        path.push_back(n);
+        n = n->right;
+      }
+    }
+  }
+
+  bool bst_remove(NodeT *&root, int v, std::deque<NodeT *> &path) {
+    NodeT *n = root;
+    for (;;) {
+      if (!n) {
+        // can not find the node to delete
+        return false;
+      }
+
+      path.push_back(n);
+
+      if (n->value == v) {
+        // go on to find the alternative
+        NodeT *remainder{nullptr};
+        if (n->left) {
+          NodeT *m = n->left;
+          while (m) {
+            path.push_back(m);
+            m = m->right;
+          }
+          remainder = path.back()->left;
+        } else if (n->right) {
+          NodeT *m = n->right;
+          while (m) {
+            path.push_back(m);
+            m = m->left;
+          }
+          remainder = path.back()->right;
+        }
+
+        // we should delete the alternative node
+        if (n->left || n->right) {
+          // the end of the path is the alternative, we should delete
+          // alternative and put its value into node n
+          auto alternative = path.back();
+          path.pop_back();
+
+          // delete alternate node
+          if (remainder) {
+            if (remainder->value < path.back()->value) {
+              path.back()->left = remainder;
+            } else {
+              path.back()->right = remainder;
+            }
+          } else if (alternative->value < path.back()->value) {
+            path.back()->left = nullptr;
+          } else {
+            path.back()->right = nullptr;
+          }
+
+          // put the altetnative node's value into node n
+          n->value = alternative->value;
+        } else {
+          // we really need to delete n
+          assert(n == path.back());
+          path.pop_back();
+
+          if (path.empty()) {
+            root = nullptr;
+          } else if (path.back()->value > n->value) {
+            path.back()->left = nullptr;
+          } else {
+            path.back()->right = nullptr;
+          }
+        }
+
+        return true;
+      } else if (n->value > v) {
+        n = n->left;
+      } else {
+        n = n->right;
+      }
+    }
+  }
+};
+
+template <typename Derived, typename NodeT,
+          template <typename, typename> class... Mixin>
+class tree_base : public Mixin<Derived, NodeT>... {
+protected:
+  NodeT *root{nullptr};
+
+public:
+  virtual void add(int v) = 0;
+  virtual void remove(int v) = 0;
 
   void add_list(const std::initializer_list<int> &list) {
     for (int v : list)
@@ -93,22 +206,26 @@ public:
       remove(i);
   }
 
-  void print(testing::TestInfo *test, const std::string &extra = "") {
+  operator NodeT *() { return root; }
+
+  void print(testing::TestInfo *test = nullptr, const std::string &extra = "") {
     std::stringstream tag;
-    tag << test->test_case_name() << "_" << test->name();
+    if (test) {
+      tag << test->test_case_name() << "_" << test->name();
+    }
 
     std::stringstream ss;
     ss << "digraph D {" << std::endl;
     ss << "bgcolor=grey" << std::endl;
 
     // bfs traversal
-    std::queue<NodeType *> q;
+    std::queue<NodeT *> q;
     if (root)
       q.push(root);
 
     int null_index{1};
     while (!q.empty()) {
-      NodeType *n = q.front();
+      NodeT *n = q.front();
       q.pop();
 
       ss << n->dot_rep() << std::endl;
@@ -151,11 +268,6 @@ public:
     close(fd);
     unlink(tmpfile);
   }
-
-  operator NodeType *() { return root; }
-
-protected:
-  NodeType *root{nullptr};
 };
 
 } // namespace binary_tree

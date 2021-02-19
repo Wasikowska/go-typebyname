@@ -1,0 +1,9 @@
+#! /bin/bash
+
+if ! which valgrind; then
+    echo "valgrind not found!"
+    exit 1
+fi
+
+# use --num-calles to increase stack trace
+valgrind --leak-check=yes --track-origins=yes --show-leak-kinds=all --read-inline-info=yes $@

@@ -1,5 +1,6 @@
 *~
 .clangd
+.cache
 output
 compile_commands.json
 alg

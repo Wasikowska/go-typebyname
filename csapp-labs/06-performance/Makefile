@@ -4,7 +4,8 @@ VERSION = 1
 HANDINDIR = 
 
 CC = gcc
-CFLAGS = -Wall -O2
+CFLAGS = -Wall -O2 -g
+CFLAGS_ASM = ${CFLAGS} -S -fverbose-asm
 LIBS = -lm
 
 OBJS = driver.o kernels.o fcyc.o clock.o
@@ -18,6 +19,7 @@ handin:
 	cp kernels.c $(HANDINDIR)/$(TEAM)-$(VERSION)-kernels.c
 
 clean: 
-	-rm -f $(OBJS) driver core *~ *.o
+	-rm -f $(OBJS) driver core *~ *.o *.s
 
-
+asm:
+	$(CC) $(CFLAGS_ASM) *.c

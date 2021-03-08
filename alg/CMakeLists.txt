@@ -10,5 +10,7 @@ add_subdirectory(benchmark)
 add_executable(alg ${src})
 target_link_libraries(alg gtest_main benchmark::benchmark)
 
+add_library(gh SHARED gdb_helper.cxx)
+
 # add_executable(alg_bench ${src} bench.cxx)
 # target_link_libraries(alg_bench gtest benchmark::benchmark)

@@ -1,7 +1,11 @@
+#! /bin/bash
 
 # the leading colon means SILENT error reporting mode
-optstring=":gh"
+optstring=":ghri"
+
 valgrind_friendly=0
+debug=1
+incremental=0
 
 while getopts ${optstring} arg; do
     case ${arg} in
@@ -10,6 +14,7 @@ while getopts ${optstring} arg; do
 	    echo "  options:"
 	    echo "    -g: create valgrind-friendly executable"
 	    echo "    -h: display this help message"
+	    echo "    -r: create release type executable"
 	    echo "  cmd:"
 	    echo "    build: build executable. this is the default cmd"
 	    echo "    clean: remove output directory"
@@ -17,6 +22,12 @@ while getopts ${optstring} arg; do
 	    ;;
 	g)
 	    valgrind_friendly=1
+	    ;;
+	r)
+	    debug=0
+	    ;;
+	i)
+	    incremental=1
 	    ;;
 	:)
 	    echo "$0: Must supply an argument to -$OPTARG." >&2
@@ -50,12 +61,35 @@ if [[ $cmd = "build" ]]; then
 
     (
 	cd output
+	export CC=`which gcc`
 
-	cmake_args="-G Ninja .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON -DCMAKE_BUILD_TYPE=Debug"
-	if (( $valgrind_friendly == 1 )); then
-	    cmake ${cmake_args} -DCMAKE_CXX_FLAGS="-O1 -Wall"
-	else
-	    cmake ${cmake_args}
+	if (( $incremental == 0 )); then
+	    cmake_args_prefix="-G Ninja .. -DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+
+	    cmake_build_type="Debug"
+	    if (( $debug == 0 )); then
+		cmake_build_type="Release"
+	    fi
+
+	    cmake_cxx_flags=""
+	    if (( $valgrind_friendly == 1 )); then
+		cmake_cxx_flags="-Wall -O1"
+	    elif (( $debug == 1 )); then
+		cmake_cxx_flags="-Wall -Og -ggdb3"
+	    else
+		cmake_cxx_flags="-Wall -O3 -g"
+	    fi
+
+	    # the following code is WRONG!!!
+	    #
+	    # the problem is, you put some double-quote chars cmake_args,
+	    # when it expanded, it lost its magic, and reduced to a normal
+	    # chararter.
+	    #
+	    # cmake ${cmake_args}
+
+	    echo cmake ${cmake_args_prefix} -DCMAKE_BUILD_TYPE=${cmake_build_type} -DCMAKE_CXX_FLAGS="${cmake_cxx_flags}"
+	    cmake ${cmake_args_prefix} -DCMAKE_BUILD_TYPE=${cmake_build_type} -DCMAKE_CXX_FLAGS="${cmake_cxx_flags}"
 	fi
 
 	cmake --build .
@@ -67,7 +101,7 @@ if [[ $cmd = "build" ]]; then
     if [[ ! -e alg ]]; then
 	ln -s ./output/alg alg
     fi
-elif [[ cmd = "clean" ]]; then
+elif [[ $cmd = "clean" ]]; then
     if [[ -d ./output ]]; then
 	rm -rf ./output
     fi

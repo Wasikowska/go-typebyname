@@ -1,0 +1,6 @@
+output
+*~
+.cache
+leet
+compile_commands.json
+.clangd

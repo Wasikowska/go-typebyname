@@ -3,6 +3,6 @@ cmake_minimum_required(VERSION 3.18)
 project(leet)
 set(CMAKE_CXX_STANDARD 17)
 
-file(GLOB src list/*.cpp)
+file(GLOB src list/*.cpp hash/*.cpp)
 
 add_executable(leet ${src})

@@ -117,7 +117,7 @@ public:
     }
 };
 
-int main() {
-  vector<vector<int>> grid = {{1,0,0,0},{0,0,0,0},{0,0,0,2}};
-  std::cout << Solution().uniquePathsIII(grid) << std::endl;
-}
+// int main() {
+//   vector<vector<int>> grid = {{1,0,0,0},{0,0,0,0},{0,0,0,2}};
+//   std::cout << Solution().uniquePathsIII(grid) << std::endl;
+// }

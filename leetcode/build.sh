@@ -70,7 +70,7 @@ if [[ $cmd = "build" ]]; then
 	    if (( $valgrind_friendly == 1 )); then
 		cmake_cxx_flags="-Wall -O1"
 	    elif (( $debug == 1 )); then
-		cmake_cxx_flags="-Wall -Og -ggdb3"
+		cmake_cxx_flags="-Wall -O0 -g"
 	    else
 		cmake_cxx_flags="-Wall -O3 -g"
 	    fi

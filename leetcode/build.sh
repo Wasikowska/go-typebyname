@@ -19,6 +19,7 @@ while getopts ${optstring} arg; do
 	    echo "  cmd:"
 	    echo "    build: build executable. this is the default cmd"
 	    echo "    clean: remove output directory"
+	    echo "    list-targets: list all available cmake targets"
 	    exit 0
 	    ;;
 	g)
@@ -91,6 +92,10 @@ if [[ $cmd = "build" ]]; then
 elif [[ $cmd = "clean" ]]; then
     if [[ -d ./output ]]; then
 	rm -rf ./output
+    fi
+elif [[ $cmd = "list-targets" ]]; then
+    if [[ -d ./output ]]; then
+	cmake --build ouput --target help
     fi
 else
     echo "Invalid cmd: ${cmd}"

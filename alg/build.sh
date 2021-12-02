@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /bin/bash -ue
 
 # the leading colon means SILENT error reporting mode
 optstring=":ghri"

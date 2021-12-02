@@ -21,9 +21,10 @@ Base Class
 对于Dependent Name， 需要Two Phase Lookup：
 - Unqalified Dependent Name（包括） 在遇到时，进行Ordinary Lookup，此时
   Resolution并没有结束
-- 在Template Instantiation的过程中，Qualified Dependent Name会进行
-  Ordinary Lookup（qualified name不需要考虑ADL），Unqualified Dependent Name进行ADL（如果ADL是可做
-  的）。这个过程会考虑Dependent Base Class
+- 在Template Instantiation的过程中，Qualified Dependent Name会进行  
+  Ordinary Lookup（qualified name不需要考虑ADL），Unqualified
+  Dependent Name进行ADL（如果ADL是可做的）。这个过程会考虑Dependent
+  Base Class
   
 # Template Instantiation
 两个特点：

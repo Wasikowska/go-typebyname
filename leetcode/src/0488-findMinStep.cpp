@@ -103,14 +103,14 @@ public:
   }
 };
 
-int main() {
-  Solution s;
-  // cout << s.findMinStep("RBYYBBRRB", "YRBGB") << endl; // 3
-  // cout << s.findMinStep("G", "GGGG") << endl; // 2
-  // cout << s.findMinStep("WWRRBBWW", "WRBRW") << endl; // 2
-  // cout << s.findMinStep("WRRBBW", "RB") << endl; // -1
-  // cout << s.findMinStep("RWYWRRWRR", "YRY") << endl; // 3
-  // cout << s.findMinStep("RRWWRRBBRR", "WB") << endl; // 2
-  cout << s.findMinStep("RRYGGYYRRYYGGYRR", "BGGBB") << endl; // 5
-  // cout << s.findMinStep("RRYGGYYRBRYYGGYRR", "GGBB") << endl; // 4
-}
+// int main() {
+//   Solution s;
+//   // cout << s.findMinStep("RBYYBBRRB", "YRBGB") << endl; // 3
+//   // cout << s.findMinStep("G", "GGGG") << endl; // 2
+//   // cout << s.findMinStep("WWRRBBWW", "WRBRW") << endl; // 2
+//   // cout << s.findMinStep("WRRBBW", "RB") << endl; // -1
+//   // cout << s.findMinStep("RWYWRRWRR", "YRY") << endl; // 3
+//   // cout << s.findMinStep("RRWWRRBBRR", "WB") << endl; // 2
+//   cout << s.findMinStep("RRYGGYYRRYYGGYRR", "BGGBB") << endl; // 5
+//   // cout << s.findMinStep("RRYGGYYRBRYYGGYRR", "GGBB") << endl; // 4
+// }

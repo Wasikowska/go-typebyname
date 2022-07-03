@@ -62,12 +62,12 @@ public:
   }
 };
 
-int main() {
-  Solution s;
+// int main() {
+//   Solution s;
   
-  string str = "AAAAAAAAAAA";
-  auto ans = s.findRepeatedDnaSequences(str);
-  for (auto ss : ans) {
-    printf("%s\n", ss.c_str());
-  }
-}
+//   string str = "AAAAAAAAAAA";
+//   auto ans = s.findRepeatedDnaSequences(str);
+//   for (auto ss : ans) {
+//     printf("%s\n", ss.c_str());
+//   }
+// }

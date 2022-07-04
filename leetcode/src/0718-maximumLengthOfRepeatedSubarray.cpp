@@ -1,40 +1,67 @@
 #include <vector>
+#include <cstdint>
+#include <unordered_set>
 #include <cstdio>
 
 using namespace std;
 
 class Solution {
-public:
-    int findLength(vector<int>& nums1, vector<int>& nums2) {
-      int row = nums1.size(), col = nums2.size();
-      int ans = 0;
+private:
+  int p = 103;
+  int invp{0};
+  int m = 1e9 + 9;
 
-      vector<vector<int>> dp(row, vector<int>(col));
-      for (int i = 0; i < row; i++) {
-	dp[i][col - 1] = (nums1[i] == nums2[col - 1]) ? 1 : 0;
-	ans = max(ans, dp[i][col - 1]);
-	// printf("dp[%d][%d] = %d\n", i, col - 1, dp[i][col - 1]);
+  void calcInvp() {
+    int x{m - 2};
+    int64_t ans{1};
+    int64_t pe{p};
+    while (x > 0) {
+      if (x & 1) {
+	ans = ans * pe % m;
       }
-      for (int i = 0; i < col; i++) {
-	dp[row - 1][i] = (nums1[row - 1] == nums2[i]) ? 1 : 0;
-	ans = max(ans, dp[row - 1][i]);
-	// printf("dp[%d][%d] = %d\n", row - 1, i, dp[row - 1][i]);
-      }
-
-      for (int i = row - 2; i >= 0; i--) {
-	for (int j = col - 2; j >= 0; j--) {
-	  if (nums1[i] == nums2[j]) {
-	    dp[i][j] = dp[i + 1][j + 1] + 1;
-	  } else {
-	    dp[i][j] = 0;
-	  }
-	  ans = max(ans, dp[i][j]);
-	  // printf("dp[%d][%d] = %d\n", i, j, dp[i][j]);
-	}
-      }
-
-      return ans;
+      x >>= 1, pe = pe * pe % m;
     }
+    invp = ans;
+  }
+
+  bool tryLen(const vector<int>& nums1, const vector<int>& nums2, int len) {
+    int64_t h1{0}, h2{0}, pe{1};
+    for (int i = 0; i < len; i++) {
+      h1 = (h1 + nums1[i] * pe) % m;
+      h2 = (h2 + nums2[i] * pe) % m;
+      pe = pe * p % m;
+    }
+    unordered_set<int64_t> hs{h1};
+    for (int i = 1; i + len <= nums1.size(); i++) {
+      h1 = (h1 - nums1[i - 1] + m + nums1[i + len - 1] * pe) % m * invp % m;
+      hs.insert(h1);
+    }
+    if (hs.count(h2)) {
+      return true;
+    }
+    for (int i = 1; i + len <= nums2.size(); i++) {
+      h2 = (h2 - nums2[i - 1] + m + nums2[i + len - 1] * pe) % m * invp % m;
+      if (hs.count(h2)) {
+	return true;
+      }
+    }
+    return false;
+  }
+
+public:
+  int findLength(vector<int>& nums1, vector<int>& nums2) {
+    calcInvp();
+    int l{0}, r = min(nums1.size(), nums2.size()) + 1;
+    while (r - l > 1) {
+      int mid = (l + r) / 2;
+      if (tryLen(nums1, nums2, mid)) {
+	l = mid;
+      } else {
+	r = mid;
+      }
+    }
+    return l;
+  }
 };
 
 // int main() {
